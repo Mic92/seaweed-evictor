@@ -16,15 +16,8 @@ $ nix run .#dev
 
 This starts a complete local setup: a fake "real S3" bucket, the cache in front
 of it, background upload and the evictor. It prints the endpoint and
-credentials. Point any S3 client at it.
-
-| Setting | Effect |
-| -------------------------------------- | ----------------------------------------------------- |
-| `SEAWEED_EVICTOR_CAPACITY` | Cache size limit, e.g. `10GiB` (default 1 GiB) |
-| `SEAWEED_EVICTOR_DATA` | Where state is kept (default `./.data`) |
-| `SEAWEED_EVICTOR_ANONYMOUS_READ=1` | Let unsigned requests read the bucket, nothing else |
-| `SEAWEED_EVICTOR_TLS=1` | Also serve HTTPS on port 38443 (self-signed) |
-| `SEAWEED_EVICTOR_UI_PORT` | process-compose API port (default 18081) |
+credentials. Point any S3 client at it. Set `SEAWEED_EVICTOR_CAPACITY` to change
+the cache size (default 1 GiB).
 
 ## Architecture
 
