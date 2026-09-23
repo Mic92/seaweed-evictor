@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 430" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="15">
+  <title>seaweed-evictor architecture</title>
+  <desc>Clients talk to the SeaweedFS S3 gateway, which stores objects in the filer and volume servers and uploads them to the real S3 bucket in the background. The evictor watches filer change events and the gateway read log, and drops local copies of objects that are already uploaded.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#57606a"/>
+    </marker>
+    <marker id="arrow-accent" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#bf5b04"/>
+    </marker>
+  </defs>
+
+  <rect width="900" height="430" rx="12" fill="#ffffff"/>
+
+  <!-- local cache boundary -->
+  <rect x="150" y="20" width="560" height="250" rx="14" fill="#f6f8fa" stroke="#8c959f" stroke-width="1.5" stroke-dasharray="6 5"/>
+  <text x="170" y="46" fill="#57606a" font-size="13" font-weight="600" letter-spacing="0.5">SEAWEEDFS  (LOCAL CACHE)</text>
+
+  <!-- client -->
+  <rect x="20" y="95" width="100" height="56" rx="10" fill="#ffffff" stroke="#57606a" stroke-width="1.5"/>
+  <text x="70" y="129" text-anchor="middle" fill="#1f2328" font-weight="600">Client</text>
+
+  <!-- S3 gateway -->
+  <rect x="175" y="95" width="130" height="56" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="240" y="119" text-anchor="middle" fill="#1f2328" font-weight="600">S3 gateway</text>
+  <text x="240" y="138" text-anchor="middle" fill="#57606a" font-size="12">weed s3</text>
+
+  <!-- filer -->
+  <rect x="365" y="95" width="120" height="56" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="425" y="119" text-anchor="middle" fill="#1f2328" font-weight="600">Filer</text>
+  <text x="425" y="138" text-anchor="middle" fill="#57606a" font-size="12">metadata</text>
+
+  <!-- volume servers -->
+  <rect x="545" y="95" width="140" height="56" rx="10" fill="#ddf4ff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="615" y="119" text-anchor="middle" fill="#1f2328" font-weight="600">Volume servers</text>
+  <text x="615" y="138" text-anchor="middle" fill="#57606a" font-size="12">object data</text>
+
+  <!-- remote sync -->
+  <rect x="545" y="190" width="140" height="50" rx="10" fill="#ffffff" stroke="#0969da" stroke-width="1.5"/>
+  <text x="615" y="212" text-anchor="middle" fill="#1f2328" font-weight="600">remote.sync</text>
+  <text x="615" y="230" text-anchor="middle" fill="#57606a" font-size="12">background upload</text>
+
+  <!-- real S3 -->
+  <rect x="760" y="190" width="120" height="50" rx="10" fill="#dafbe1" stroke="#1a7f37" stroke-width="1.5"/>
+  <text x="820" y="212" text-anchor="middle" fill="#1f2328" font-weight="600">Real S3</text>
+  <text x="820" y="230" text-anchor="middle" fill="#57606a" font-size="12">bucket</text>
+
+  <!-- evictor -->
+  <rect x="290" y="335" width="270" height="70" rx="10" fill="#fff1e5" stroke="#bf5b04" stroke-width="2"/>
+  <text x="425" y="363" text-anchor="middle" fill="#1f2328" font-weight="700">seaweed-evictor</text>
+  <text x="425" y="385" text-anchor="middle" fill="#57606a" font-size="12">S3-FIFO eviction policy</text>
+
+  <!-- data path -->
+  <g stroke="#57606a" stroke-width="1.8" fill="none" marker-end="url(#arrow)">
+    <path d="M120,123 H173"/>
+    <path d="M305,123 H363"/>
+    <path d="M485,123 H543"/>
+    <path d="M475,151 V215 H543"/>
+    <path d="M685,215 H758"/>
+  </g>
+  <text x="135" y="113" text-anchor="middle" fill="#57606a" font-size="12">S3</text>
+  <text x="722" y="207" text-anchor="middle" fill="#57606a" font-size="12">upload</text>
+
+  <!-- evictor inputs and output -->
+  <g stroke="#bf5b04" stroke-width="1.8" fill="none" marker-end="url(#arrow-accent)">
+    <path d="M240,151 V300 Q240,370 288,370"/>
+    <path d="M395,335 V153"/>
+    <path d="M440,151 V333"/>
+  </g>
+  <text x="228" y="300" text-anchor="end" fill="#bf5b04" font-size="12" font-weight="600">read log</text>
+  <text x="383" y="250" text-anchor="end" fill="#bf5b04" font-size="12" font-weight="600">drop local copy</text>
+  <text x="452" y="250" fill="#bf5b04" font-size="12" font-weight="600">change events</text>
+
+  <!-- legend -->
+  <g font-size="12" fill="#57606a">
+    <line x1="600" y1="360" x2="640" y2="360" stroke="#57606a" stroke-width="1.8" marker-end="url(#arrow)"/>
+    <text x="650" y="364">data path</text>
+    <line x1="600" y1="385" x2="640" y2="385" stroke="#bf5b04" stroke-width="1.8" marker-end="url(#arrow-accent)"/>
+    <text x="650" y="389">eviction control</text>
+  </g>
+</svg>

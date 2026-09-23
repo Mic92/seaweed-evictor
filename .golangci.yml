@@ -1,0 +1,52 @@
+version: "2"
+linters:
+  default: all
+  disable:
+    - cyclop
+    - depguard
+    - err113
+    - exhaustruct
+    - exhaustruct_v5
+    - funlen
+    - gocognit
+    - godox
+    - gomodguard
+    - mnd
+    - varnamelen
+    - noinlineerr
+    - lll
+    - wsl
+    - wsl_v5
+    - misspell
+  settings:
+    tagliatelle:
+      case:
+        rules:
+          json: snake
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+    rules:
+      # goconst flags repeated test fixture literals (hashes, paths,
+      # HTTP methods). Hoisting them to consts makes tests harder to
+      # read for no correctness gain.
+      - linters: [goconst]
+        path: _test\.go$
+formatters:
+  enable:
+    - gci
+    - gofumpt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
