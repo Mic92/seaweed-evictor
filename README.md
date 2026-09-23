@@ -5,11 +5,8 @@ S3 bucket from growing past a size limit. It evicts with
 [S3-FIFO](https://s3fifo.com/), so a one-off scan cannot flush the objects you
 actually read.
 
-- Writes land in SeaweedFS and reach the real bucket later, in the background.
-- Reads of evicted objects are fetched from the bucket again, transparently.
-- The evictor runs beside SeaweedFS and never handles your requests.
-
-It is an independent project, not part of SeaweedFS.
+It runs beside SeaweedFS and never handles your requests. It is an independent
+project, not part of SeaweedFS.
 
 ## Quick start
 
@@ -44,7 +41,7 @@ produce no event, so the evictor also listens to the S3 gateway's audit log.
 Without it, eviction is plain FIFO.
 
 Objects that are not uploaded yet are never evicted. If the evictor lags, the
-cache goes over the limit for a while. Requests never wait for it.
+cache goes over the limit for a while.
 
 ## Run it against your own SeaweedFS
 
@@ -76,9 +73,6 @@ SeaweedFS needs three things:
    `-auditLogConfig=audit.json`, containing
    `{"fluent_host": "127.0.0.1", "fluent_port": 24224}`.
 
-Without step 3 everything still works, but eviction ignores reads and behaves
-like plain FIFO.
-
 ## NixOS
 
 ```nix
@@ -96,10 +90,9 @@ like plain FIFO.
 }
 ```
 
-The options mirror the flags: `capacity`, `filer`, `root`, `fluentListen` (`null`
-disables read tracking) and `logLevel`. The module only runs the evictor. Mounting
-the bucket, `filer.remote.sync` and the gateway's `-auditLogConfig` are still
-yours to set up. The service restarts if the filer is not reachable yet.
+The options mirror the flags (`fluentListen = null` disables read tracking). The
+module only runs the evictor, so set up SeaweedFS as described above. The
+service restarts until the filer is reachable.
 
 ## Development
 
