@@ -36,7 +36,7 @@ let
       admin = 43646;
       webdav = 37333;
     };
-    # HTTPS twin of cache.s3, only served with SEAWEED_EVICTOR_TLS=1.
+    # HTTPS twin of cache.s3.
     s3https = 38443;
     fluent = 24224;
   };
@@ -130,8 +130,11 @@ let
             "-filer.allowUntrustedRemoteEndpoints"
             "-s3.allowUntrustedRemoteEndpoints"
             "-s3.auditLogConfig=${auditConfig}"
+            "-s3.config=${anonymousConfig}"
+            "-s3.port.https=${toString ports.s3https}"
           ]
-        } $S3_EXTRA_ARGS";
+          # Left unquoted so the shell expands $DATA.
+        } -s3.cert.file=$DATA/tls/cert.pem -s3.key.file=$DATA/tls/key.pem";
         readiness_probe = http ports.cache.filer "/";
       };
 
@@ -181,32 +184,21 @@ pkgs.writeShellApplication {
     pkgs.openssl
   ];
   text = ''
-    DATA="''${SEAWEED_EVICTOR_DATA:-$PWD/.data}"
+    DATA="$PWD/.data"
     export DATA
-    mkdir -p "$DATA"
+    mkdir -p "$DATA/tls"
 
-    S3_EXTRA_ARGS=""
-
-    # SEAWEED_EVICTOR_ANONYMOUS_READ=1 lets unsigned GET/HEAD read the bucket.
-    if [ "''${SEAWEED_EVICTOR_ANONYMOUS_READ:-0}" = 1 ]; then
-      S3_EXTRA_ARGS="$S3_EXTRA_ARGS -s3.config=${anonymousConfig}"
+    # Self-signed, for testing HTTPS. Trust it with SSL_CERT_FILE=$DATA/tls/cert.pem.
+    if [ ! -f "$DATA/tls/cert.pem" ]; then
+      openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj /CN=localhost \
+        -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" \
+        -keyout "$DATA/tls/key.pem" -out "$DATA/tls/cert.pem" 2>/dev/null
     fi
-
-    # SEAWEED_EVICTOR_TLS=1 also serves HTTPS with a self-signed certificate. Clients
-    # trust it via SSL_CERT_FILE=$DATA/tls/cert.pem.
-    if [ "''${SEAWEED_EVICTOR_TLS:-0}" = 1 ]; then
-      if [ ! -f "$DATA/tls/cert.pem" ]; then
-        mkdir -p "$DATA/tls"
-        openssl req -x509 -newkey rsa:2048 -nodes -days 365 -subj /CN=localhost \
-          -addext "subjectAltName=IP:127.0.0.1,DNS:localhost" \
-          -keyout "$DATA/tls/key.pem" -out "$DATA/tls/cert.pem" 2>/dev/null
-      fi
-      S3_EXTRA_ARGS="$S3_EXTRA_ARGS -s3.port.https=${toString ports.s3https} -s3.cert.file=$DATA/tls/cert.pem -s3.key.file=$DATA/tls/key.pem"
-    fi
-    export S3_EXTRA_ARGS
 
     cat >&2 <<EOF
-    S3 endpoint:  127.0.0.1:${toString ports.cache.s3} (plain HTTP, path-style)
+    S3 endpoint:  127.0.0.1:${toString ports.cache.s3} (HTTP) or 127.0.0.1:${toString ports.s3https} (HTTPS, self-signed)
+    reads:        unsigned GET/HEAD allowed; writes need the keys below
+    TLS cert:     $DATA/tls/cert.pem
     bucket:       ${bucket}
     region:       ${region}
     access key:   ${accessKey}
@@ -214,6 +206,7 @@ pkgs.writeShellApplication {
     upstream S3:  127.0.0.1:${toString ports.upstream.s3} (bucket "upstream")
     EOF
 
-    exec process-compose up -f ${config} -p "''${SEAWEED_EVICTOR_UI_PORT:-18081}" "$@"
+    # 8080, process-compose's default, is often taken. A -p in "$@" wins.
+    exec process-compose up -f ${config} -p 18081 "$@"
   '';
 }
